@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNet.Identity;
+﻿
 <!DOCTYPE html>
 
 <head>
@@ -35,7 +35,7 @@
                                     <small>
                                         Hello,
                                     </small>
-                                    @(User.Identity.GetUserName().Split('@')[0])
+                                    @(User.Identity.Name.Split('@')[0])
                                 </a>
 
                                 <ul class="dropdown-menu dropdown-menu-right sf-hidden" style=min-width:14rem>
@@ -90,8 +90,8 @@
                                                             <img alt=avatar src="~/Content/Assets/avatar.png" class="avatar avatar-90 photo rounded-circle" height=90 width=90>
                                                         </div>
                                                         <div class="media-body pl-3">
-                                                            <h3 class="font-size-base mb-0">@(User.Identity.GetUserName().Split('@')[0])</h3>
-                                                            <span class="text-accent font-size-sm">@User.Identity.GetUserName()</span>
+                                                            <h3 class="font-size-base mb-0">@(User.Identity.Name.Split('@')[0])</h3>
+                                                            <span class="text-accent font-size-sm">@User.Identity.Name</span>
                                                         </div>
                                                     </div>
                                                 </div>

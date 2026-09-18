@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+using Microsoft.AspNetCore.Http;
 
 namespace HadesWeb.Models
 {
     public class AccountFormModel
     {
         [Display(Name = "Change profile picture")]
-        public HttpPostedFileBase ProfilePicture { get; set; }
+        public IFormFile ProfilePicture { get; set; }
 
         [Required(ErrorMessage = "First name is required")]
         [Display(Name = "First Name")]
@@ -64,7 +63,7 @@ namespace HadesWeb.Models
 
         [DataType(DataType.Upload)]
         [Display(Name = "File Upload")]
-        public HttpPostedFileBase UploadedFile { get; set; }
+        public IFormFile UploadedFile { get; set; }
     }
 
     public class SecurityModel

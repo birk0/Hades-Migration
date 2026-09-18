@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Security;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using HadesWeb.Models;
-using Microsoft.AspNet.Identity;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace HadesWeb.Controllers
 {
     [Authorize]
-    public class HomeController : Controller
+    public class HomeController(IWebHostEnvironment env) : Controller
     {
         // GET: Home
         public ActionResult Index()
@@ -40,7 +39,7 @@ namespace HadesWeb.Controllers
 
         public ActionResult Mail()
         {
-            string[] roles = ((FormsIdentity)User.Identity).Ticket.UserData.Split(',');
+            string[] roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray();
             var Emails = GetEmails(roles);
 
             return View(Emails);
@@ -72,14 +71,14 @@ namespace HadesWeb.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (model.UploadedFile != null && model.UploadedFile.ContentLength > 0)
+                if (model.UploadedFile != null && model.UploadedFile.Length > 0)
                 {
                     if (User.IsInRole("Administrators"))
                     {
                         int FileSize = (1 * 1024 * 1024);
-                        if (model.UploadedFile.ContentLength < FileSize)
+                        if (model.UploadedFile.Length < FileSize)
                         {
-                            string[] AllowedExtensions = { ".docx",".odt",".pdf" };
+                            string[] AllowedExtensions = [".docx",".odt",".pdf"];
                             string extension = Path.GetExtension(model.UploadedFile.FileName).ToLower();
                             
                             if (AllowedExtensions.Contains(extension))
@@ -89,13 +88,16 @@ namespace HadesWeb.Controllers
                                     string fileName = $"{Guid.NewGuid()}{extension}";
                                     string path = Path.Combine("C:\\Users\\user\\Desktop", Path.GetFileName(fileName));
 
-                                    model.UploadedFile.SaveAs(path);
+                                    using (var stream = new FileStream(path, FileMode.Create))
+                                    {
+                                        model.UploadedFile.CopyTo(stream);
+                                    }
                                     ViewBag.Success = "Thank you for your report!";
                                 }
                                 catch (Exception) { }
                             }
                             else { ViewBag.Message = "File type is not supported."; }
-                        } 
+                        }
                         else { ViewBag.Message = "File too large."; }
                     }
                     else { ViewBag.Message = "File Upload not permitted."; }
@@ -107,30 +109,39 @@ namespace HadesWeb.Controllers
 
         public ActionResult Download(string fileName)
         {
-            try
-            {
-                string filePath = Server.MapPath($"~/App_Data/Downloads/{fileName}");
-                string fileType = MimeMapping.GetMimeMapping(fileName);
+            try {
+                string filePath = Path.Combine(env.ContentRootPath, "App_Data", "Downloads", fileName);
+                string fileType = GetMimeType(fileName);
 
-                return File(filePath, fileType, fileName);
+                return PhysicalFile(filePath, fileType, fileName);
             }
-
-            catch (Exception)
-            {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.InternalServerError);
+            catch (Exception) {
+                return new StatusCodeResult(500);
             }
         }
 
         //grab serialised email objects matching login address
         private List<Emails> GetEmails(string[] roles)
         {
-            var Path = Server.MapPath("~/App_Data/emails.json");
-            var Data = System.IO.File.ReadAllText(Path);
-            var Objects = JsonConvert.DeserializeObject<List<Emails>>(Data);
+            var Path = System.IO.Path.Combine(env.ContentRootPath, "App_Data", "emails.json");
+            using var Reader = new StreamReader(System.IO.File.OpenRead(Path));
+            var Objects = JsonSerializer.Deserialize<List<Emails>>(Reader.ReadToEnd());
 
             return Objects.Where(e => roles.Contains(e.Roles)).ToList();
         }
 
-        
+        private static string GetMimeType(string fileName)
+        {
+            string extension = Path.GetExtension(fileName).ToLowerInvariant();
+            return extension switch
+            {
+                ".pdf" => "application/pdf",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".odt" => "application/vnd.oasis.opendocument.text",
+                ".doc" => "application/msword",
+                ".txt" => "text/plain",
+                _ => "application/octet-stream"
+            };
+        }
     }
 }

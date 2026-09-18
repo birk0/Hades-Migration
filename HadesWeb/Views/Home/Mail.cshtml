@@ -16,7 +16,7 @@
                 {
                     foreach (var email in Model)
                     {
-                        var emailText = HttpUtility.JavaScriptStringEncode(email.Text);
+                        var emailText = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(email.Text);
                         <div class="email-item" onclick="openModal('@email.Title', '@email.Date', '@emailText')">
                             <div class="email-icon"><img src="~/Content/Assets/mail_small.png" alt="Icon" /></div>
                             <div class="email-details">

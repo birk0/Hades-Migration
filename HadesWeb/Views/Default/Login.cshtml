@@ -1,4 +1,7 @@
-﻿@using HadesWeb.Models
+@{
+    Layout = null;
+}
+@using HadesWeb.Models
 @model HadesWeb.Models.LoginModel
 @{
     ViewBag.Title = "Log in";
@@ -11,7 +14,7 @@
     
     <div class="col-md-8">
         <section id="loginForm">
-            @using (Html.BeginForm("Login", "Default", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+            @using (Html.BeginForm("Login", "Default", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, null, new { @class = "form-horizontal", role = "form" }))
             {
                 @Html.AntiForgeryToken()
 

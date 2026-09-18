@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Security;
+using System.Security.Claims;
+using System.IO;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using HadesWeb.Models;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace HadesWeb.Controllers
 {
     [Authorize]
-    public class DefaultController : Controller
+    public class DefaultController(IWebHostEnvironment env) : Controller
     {
         //GET: Home page
         [AllowAnonymous]
@@ -46,17 +48,20 @@ namespace HadesWeb.Controllers
 
             if (user != null && PasswordManager.ValidatePassword(model.Password, user.Password))
             {
-                var authTicket = new FormsAuthenticationTicket(1, user.Email, DateTime.Now, DateTime.Now.AddDays(7), model.RememberMe, user.Role, FormsAuthentication.FormsCookiePath);
-
-                string Ticket = FormsAuthentication.Encrypt(authTicket);
-                var Cookie = new HttpCookie(FormsAuthentication.FormsCookieName, Ticket);
-
-                if (model.RememberMe)
+                var claims = new List<Claim>
                 {
-                    Cookie.Expires = authTicket.Expiration;
-                }
+                    new Claim(ClaimTypes.Name, user.Email),
+                    new Claim(ClaimTypes.Role, user.Role)
+                };
 
-                Response.Cookies.Add(Cookie);
+                var identity = new ClaimsIdentity(claims, "ApplicationCookie");
+                var principal = new ClaimsPrincipal(identity);
+
+                HttpContext.SignInAsync("Cookies", principal, new AuthenticationProperties
+                {
+                    IsPersistent = model.RememberMe,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+                }).Wait();
 
                 return RedirectToLocal(returnUrl);
             }
@@ -73,16 +78,16 @@ namespace HadesWeb.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Logout()
         {
-            FormsAuthentication.SignOut();
+            HttpContext.SignOutAsync("Cookies").Wait();
             return RedirectToAction("Login", "Default");
         }
 
 
         private List<UsersList> GetUsers()
         {
-            var Path = Server.MapPath("~/App_Data/Users.json");
-            var Data = System.IO.File.ReadAllText(Path);
-            return JsonConvert.DeserializeObject<List<UsersList>>(Data);
+            var Path = System.IO.Path.Combine(env.ContentRootPath, "App_Data", "users.json");
+            using var Reader = new StreamReader(System.IO.File.OpenRead(Path));
+            return JsonSerializer.Deserialize<List<UsersList>>(Reader.ReadToEnd());
         }
 
         private ActionResult RedirectToLocal(string returnUrl)
