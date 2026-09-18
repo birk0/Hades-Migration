@@ -2,3 +2,5 @@ HadesWeb/bin/
 HadesWeb/obj/
 HadesWeb/App_Data/
 HadesWeb/Content/
+.opencode/
+.vscode/
