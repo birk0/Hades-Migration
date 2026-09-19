@@ -2,6 +2,10 @@
 
 - Consult first before troubleshooting, debugging, refactoring, or any code change. When consulting, reply in <=3 lines: the blocker/what happened and the plan. Do not run builds/tests, git commands, or edit files until the user approves.
 
+- Approvals are scoped to exactly what was approved. An approved change does not authorize: fixing analyzer/code errors, editing additional files, running builds/tests to "verify", or other follow-ups. If the work needs anything beyond the approved scope — including fixes for errors that the change surfaces — stop and re-consult, then wait for approval.
+
+- If an approved build/test was run and it fails, do not fix anything. Report the failures and a proposed fix plan, then wait for approval.
+
 ## Build
 
 - `dotnet build HadesWeb/HadesWeb.csproj`
