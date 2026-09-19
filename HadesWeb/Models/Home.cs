@@ -66,10 +66,7 @@ namespace HadesWeb.Models
         public IFormFile UploadedFile { get; set; }
     }
 
-    public class SecurityModel
-    {
-
-    }
+    public class SecurityModel { }
 
     public class Emails
     {

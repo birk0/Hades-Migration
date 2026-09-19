@@ -71,30 +71,25 @@ namespace HadesWeb.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (model.UploadedFile != null && model.UploadedFile.Length > 0)
+                if (model.UploadedFile?.Length > 0)
                 {
                     if (User.IsInRole("Administrators"))
                     {
-                        int FileSize = (1 * 1024 * 1024);
+                        const int FileSize = (1 * 1024 * 1024);
                         if (model.UploadedFile.Length < FileSize)
                         {
                             string[] AllowedExtensions = [".docx",".odt",".pdf"];
                             string extension = Path.GetExtension(model.UploadedFile.FileName).ToLower();
-                            
                             if (AllowedExtensions.Contains(extension))
                             {
-                                try
-                                {
-                                    string fileName = $"{Guid.NewGuid()}{extension}";
-                                    string path = Path.Combine("C:\\Users\\user\\Desktop", Path.GetFileName(fileName));
+                                string fileName = $"{Guid.NewGuid()}{extension}";
+                                string path = Path.Combine("C:\\Users\\user\\Desktop", Path.GetFileName(fileName));
 
-                                    using (var stream = new FileStream(path, FileMode.Create))
-                                    {
-                                        model.UploadedFile.CopyTo(stream);
-                                    }
-                                    ViewBag.Success = "Thank you for your report!";
+                                using (var stream = new FileStream(path, FileMode.Create))
+                                {
+                                    model.UploadedFile.CopyTo(stream);
                                 }
-                                catch (Exception) { }
+                                ViewBag.Success = "Thank you for your report!";
                             }
                             else { ViewBag.Message = "File type is not supported."; }
                         }
