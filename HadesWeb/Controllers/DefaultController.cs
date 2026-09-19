@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using HadesWeb.Models;
 using System.Text.Json;
+using HadesWeb.Services;
 
 namespace HadesWeb.Controllers
 {
