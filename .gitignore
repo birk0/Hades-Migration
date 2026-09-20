@@ -2,5 +2,8 @@ HadesWeb/bin/
 HadesWeb/obj/
 HadesWeb/App_Data/
 HadesWeb/Content/
+HadesWeb.Tests/bin/
+HadesWeb.Tests/obj/
 .opencode/
 .vscode/
+.env
