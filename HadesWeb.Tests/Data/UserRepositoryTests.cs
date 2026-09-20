@@ -88,4 +88,35 @@ public class UserRepositoryTests
         Assert.That(users.Any(u => u.Email == "test2@hades.htb" && u.Role == "Administrators"), Is.True);
         Assert.That(users.Any(u => u.Email == "test3@hades.htb" && u.Role == "Support Team"), Is.True);
     }
+
+    [Test]
+    public void Create_NewUser_AddsToDatabase()
+    {
+        var user = _repository.Create("newuser@hades.htb", "$2a$12$hash4", "Web Users");
+
+        Assert.That(user, Is.Not.Null);
+        Assert.That(user.Email, Is.EqualTo("newuser@hades.htb"));
+        Assert.That(user.Role, Is.EqualTo("Web Users"));
+        Assert.That(user.Id, Is.GreaterThan(0));
+    }
+
+    [Test]
+    public void Create_DuplicateEmail_ThrowsException()
+    {
+        _repository.Create("duplicate@hades.htb", "$2a$12$hash", "Web Users");
+
+        Assert.Throws<DbUpdateException>(() => _repository.Create("duplicate@hades.htb", "$2a$12$hash2", "Administrators"));
+    }
+
+    [Test]
+    public void Create_ThenGetByEmail_ReturnsCreatedUser()
+    {
+        var created = _repository.Create("findme@hades.htb", "$2a$12$hash", "Support Team");
+        var found = _repository.GetByEmail("findme@hades.htb");
+
+        Assert.That(found, Is.Not.Null);
+        Assert.That(found.Id, Is.EqualTo(created.Id));
+        Assert.That(found.Email, Is.EqualTo(created.Email));
+        Assert.That(found.Role, Is.EqualTo(created.Role));
+    }
 }
