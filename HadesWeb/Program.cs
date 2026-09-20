@@ -2,10 +2,18 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.EntityFrameworkCore;
+using HadesWeb.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+
+var dbPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "hades.db");
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite($"Data Source={dbPath}"));
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -19,6 +27,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    DbSeeder.Seed(scope.ServiceProvider);
+}
 
 app.UseStaticFiles(new StaticFileOptions
 {
