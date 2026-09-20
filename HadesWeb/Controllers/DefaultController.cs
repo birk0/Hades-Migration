@@ -29,6 +29,53 @@ namespace HadesWeb.Controllers
             return View();
         }
 
+        // GET: /Register
+        [AllowAnonymous]
+        public ActionResult Register(string returnUrl)
+        {
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
+        }
+
+        // POST: /Register
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public ActionResult Register(RegisterModel model, string returnUrl)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var existingUser = userRepository.GetByEmail(model.Email);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError("Email", "Email already registered");
+                return View(model);
+            }
+
+            var passwordHash = PasswordManager.HashPassword(model.Password);
+            var user = userRepository.Create(model.Email, passwordHash, "Web Users");
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            var identity = new ClaimsIdentity(claims, "ApplicationCookie");
+            var principal = new ClaimsPrincipal(identity);
+
+            HttpContext.SignInAsync("Cookies", principal, new AuthenticationProperties
+            {
+                IsPersistent = false,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+            }).Wait();
+
+            return RedirectToLocal(returnUrl);
+        }
+
         // POST: /Login
         [HttpPost]
         [AllowAnonymous]

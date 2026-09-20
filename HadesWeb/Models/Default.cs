@@ -21,6 +21,26 @@ namespace HadesWeb.Models
         [Display(Name = "Remember me?")]
         public bool RememberMe { get; set; }
     }
+
+    public class RegisterModel
+    {
+        [Required(ErrorMessage = "Invalid email address")]
+        [Display(Name = "Email")]
+        [EmailAddress(ErrorMessage = " ")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Invalid Password")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; }
+
+        [Required(ErrorMessage = "Please confirm your password")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm Password")]
+        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; }
+    }
+
     public class UsersList
     {
         public string Email { get; set; }

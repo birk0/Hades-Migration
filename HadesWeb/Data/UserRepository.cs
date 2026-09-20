@@ -21,4 +21,19 @@ public class UserRepository : IUserRepository
     {
         return _context.Users.ToList();
     }
+
+    public User Create(string email, string passwordHash, string role)
+    {
+        var user = new User
+        {
+            Email = email,
+            PasswordHash = passwordHash,
+            Role = role
+        };
+
+        _context.Users.Add(user);
+        _context.SaveChanges();
+
+        return user;
+    }
 }
